@@ -1,15 +1,12 @@
 """Platform for light integration."""
 from __future__ import annotations
 from typing import Any
-from homeassistant.components.light import (ATTR_BRIGHTNESS, ATTR_COLOR_TEMP, ATTR_RGB_COLOR, ColorMode, LightEntity)
+from homeassistant.components.light import (ATTR_BRIGHTNESS, ATTR_COLOR_TEMP_KELVIN, ATTR_RGB_COLOR, ColorMode, LightEntity)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo
 from .const import DOMAIN
-import logging
-
-_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -88,19 +85,19 @@ class CyncRoomEntity(LightEntity):
         return round(self.room.brightness*255/100)
 
     @property
-    def max_mireds(self) -> int:
-        """Return minimum supported color temperature."""
-        return self.room.max_mireds
-
-    @property
-    def min_mireds(self) -> int:
+    def max_color_temp_kelvin(self) -> int:
         """Return maximum supported color temperature."""
-        return self.room.min_mireds
+        return self.room.max_color_temp_kelvin
 
     @property
-    def color_temp(self) -> int | None:
-        """Return the color temperature of this light in mireds for HA."""
-        return self.max_mireds - round((self.max_mireds-self.min_mireds)*self.room.color_temp/100)
+    def min_color_temp_kelvin(self) -> int:
+        """Return minimum supported color temperature."""
+        return self.room.min_color_temp_kelvin
+
+    @property
+    def color_temp_kelvin(self) -> int:
+        """Return color temperature in kelvin."""
+        return self.min_color_temp_kelvin + round((self.max_color_temp_kelvin-self.min_color_temp_kelvin)*self.room.color_temp/100)
 
     @property
     def rgb_color(self) -> tuple[int, int, int] | None:
@@ -117,11 +114,11 @@ class CyncRoomEntity(LightEntity):
             modes.add(ColorMode.COLOR_TEMP)
         if self.room.support_rgb:
             modes.add(ColorMode.RGB)
-        if self.room.support_brightness:
+        if self.room.support_brightness and not modes:
             modes.add(ColorMode.BRIGHTNESS)
         if not modes:
             modes.add(ColorMode.ONOFF)
-            
+
         return modes
 
     @property
@@ -136,11 +133,11 @@ class CyncRoomEntity(LightEntity):
         if self.room.support_brightness:
             return ColorMode.BRIGHTNESS
         else:
-            return ColorMode.ONOFF 
+            return ColorMode.ONOFF
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
-        await self.room.turn_on(kwargs.get(ATTR_RGB_COLOR),kwargs.get(ATTR_BRIGHTNESS),kwargs.get(ATTR_COLOR_TEMP))
+        await self.room.turn_on(kwargs.get(ATTR_RGB_COLOR),kwargs.get(ATTR_BRIGHTNESS),kwargs.get(ATTR_COLOR_TEMP_KELVIN))
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""
@@ -176,7 +173,7 @@ class CyncSwitchEntity(LightEntity):
     @property
     def unique_id(self) -> str:
         """Return Unique ID string."""
-        return 'cync_switch_' + self.cync_switch.device_id 
+        return 'cync_switch_' + self.cync_switch.device_id
 
     @property
     def name(self) -> str:
@@ -194,19 +191,19 @@ class CyncSwitchEntity(LightEntity):
         return round(self.cync_switch.brightness*255/100)
 
     @property
-    def max_mireds(self) -> int:
-        """Return minimum supported color temperature."""
-        return self.cync_switch.max_mireds
-
-    @property
-    def min_mireds(self) -> int:
+    def max_color_temp_kelvin(self) -> int:
         """Return maximum supported color temperature."""
-        return self.cync_switch.min_mireds
+        return self.cync_switch.max_color_temp_kelvin
 
     @property
-    def color_temp(self) -> int | None:
-        """Return the color temperature of this light in mireds for HA."""
-        return self.max_mireds - round((self.max_mireds-self.min_mireds)*self.cync_switch.color_temp/100)
+    def min_color_temp_kelvin(self) -> int:
+        """Return minimum supported color temperature."""
+        return self.cync_switch.min_color_temp_kelvin
+
+    @property
+    def color_temp_kelvin(self) -> int | None:
+        """Return the color temperature of this light for HA."""
+        return self.min_color_temp_kelvin + round((self.max_color_temp_kelvin-self.min_color_temp_kelvin)*self.cync_switch.color_temp/100)
 
     @property
     def rgb_color(self) -> tuple[int, int, int] | None:
@@ -223,7 +220,7 @@ class CyncSwitchEntity(LightEntity):
             modes.add(ColorMode.COLOR_TEMP)
         if self.cync_switch.support_rgb:
             modes.add(ColorMode.RGB)
-        if self.cync_switch.support_brightness:
+        if self.cync_switch.support_brightness and not modes:
             modes.add(ColorMode.BRIGHTNESS)
         if not modes:
             modes.add(ColorMode.ONOFF)
@@ -242,11 +239,11 @@ class CyncSwitchEntity(LightEntity):
         if self.cync_switch.support_brightness:
             return ColorMode.BRIGHTNESS
         else:
-            return ColorMode.ONOFF 
+            return ColorMode.ONOFF
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
-        await self.cync_switch.turn_on(kwargs.get(ATTR_RGB_COLOR),kwargs.get(ATTR_BRIGHTNESS),kwargs.get(ATTR_COLOR_TEMP))
+        await self.cync_switch.turn_on(kwargs.get(ATTR_RGB_COLOR),kwargs.get(ATTR_BRIGHTNESS),kwargs.get(ATTR_COLOR_TEMP_KELVIN))
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""

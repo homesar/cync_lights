@@ -7,9 +7,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
-import logging
-
-_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -65,8 +62,8 @@ class CyncFanEntity(FanEntity):
 
     @property
     def supported_features(self) -> int:
-        """Return true if fan is on."""
-        return FanEntityFeature.SET_SPEED
+        """Return the list of supported features."""
+        return FanEntityFeature.SET_SPEED | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF
 
     @property
     def is_on(self) -> bool | None:
