@@ -1,6 +1,8 @@
 """The Cync Room Lights integration."""
 from __future__ import annotations
 
+import importlib
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from .const import DOMAIN
@@ -16,6 +18,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hub = CyncHub(entry.data, entry.options, remove_options_update_listener)
     hass.data[DOMAIN][entry.entry_id] = hub
     hub.start_tcp_client()
+
+    # Pre-import platform modules on executor to avoid blocking the event loop
+    # during async_forward_entry_setups (required by HA asyncio rules).
+    await hass.async_add_executor_job(
+        lambda: [
+            importlib.import_module(f"custom_components.{DOMAIN}.{platform}")
+            for platform in PLATFORMS
+        ]
+    )
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
