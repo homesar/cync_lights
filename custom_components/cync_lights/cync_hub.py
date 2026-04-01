@@ -230,7 +230,7 @@ class CyncHub:
                             switch_id = str(struct.unpack(">I", packet[0:4])[0])
                             home_id = self.switchID_to_homeID[switch_id]
                             self._add_connected_devices(switch_id, home_id)
-                        elif packet_type == 123:
+                        elif packet_type in (120, 123, 168):
                             seq = str(struct.unpack(">H", packet[4:6])[0])
                             command_received = self.pending_commands.get(seq,None)
                             if command_received is not None:
