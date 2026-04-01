@@ -288,9 +288,12 @@ class CyncHub:
     async def _update_state(self):
         while not self.connected_devices_updated:
             await asyncio.sleep(2)
-        for connected_devices in self.connected_devices.values():
+        for home_id, connected_devices in self.connected_devices.items():
             if len(connected_devices) > 0:
                 controller = self.cync_switches[connected_devices[0]].switch_id
+            else:
+                controller = self.home_controllers[home_id][0] if self.home_controllers[home_id] else None
+            if controller is not None:
                 seq = self.get_seq_num()
                 state_request = bytes.fromhex('7300000018') + int(controller).to_bytes(4,'big') + seq.to_bytes(2,'big') + bytes.fromhex('007e00000000f85206000000ffff0000567e')
                 self.loop.call_soon_threadsafe(self.send_request,state_request)
