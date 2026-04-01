@@ -268,6 +268,7 @@ class CyncHub:
                         await asyncio.sleep(0.15)
                 await asyncio.sleep(2)
                 attempts += 1
+            _LOGGER.debug("Connected devices after ping: %s", {home_id: devices for home_id, devices in self.connected_devices.items()})
             for dev in self.cync_switches.values():
                 dev.update_controllers()
             for room in self.cync_rooms.values():
@@ -494,6 +495,7 @@ class CyncRoom:
             self.controllers = controllers + others_available
         else:
             self.controllers = [self.default_controller]
+        _LOGGER.debug("CyncRoom %s controllers updated: %s", self.name, self.controllers)
 
     def publish_update(self):
         if self._update_callback:
@@ -636,6 +638,7 @@ class CyncSwitch:
             self.controllers = controllers + others_available
         else:
             self.controllers = [self.default_controller]
+        _LOGGER.debug("CyncSwitch %s controllers updated: %s", self.name, self.controllers)
 
     def publish_update(self):
         if self._update_callback:
