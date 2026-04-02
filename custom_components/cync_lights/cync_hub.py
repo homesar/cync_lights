@@ -277,6 +277,15 @@ class CyncHub:
                 await asyncio.sleep(2)
                 attempts += 1
             _LOGGER.info("Connected devices after ping: %s", {home_id: devices for home_id, devices in self.connected_devices.items()})
+            for home_id, connected_devices in self.connected_devices.items():
+                if len(connected_devices) > 0:
+                    controller = self.cync_switches[connected_devices[0]].switch_id
+                else:
+                    controller = self.home_controllers[home_id][0] if self.home_controllers[home_id] else None
+                if controller is not None:
+                    seq = self.get_seq_num()
+                    state_request = bytes.fromhex('7300000018') + int(controller).to_bytes(4,'big') + seq.to_bytes(2,'big') + bytes.fromhex('007e00000000f85206000000ffff0000567e')
+                    self.loop.call_soon_threadsafe(self.send_request, state_request)
             for dev in self.cync_switches.values():
                 dev.update_controllers()
             for room in self.cync_rooms.values():
